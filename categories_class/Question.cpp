@@ -1,9 +1,11 @@
 #include "Question.h"
 
+
+
 // Конструктор по умолчанию
 Question::Question()
     : content_()
-    , correct_(false)
+    , is_correct_(false)
     , is_resolved_(false)
     , points_(0) {
 }
@@ -11,21 +13,14 @@ Question::Question()
 // Конструктор с текстовым вопросом
 Question::Question(const std::string& content)
     : content_({ content })  // Создаем вектор с одним элементом
-    , correct_(false)
+    , is_correct_(false)
     , is_resolved_(false)
     , points_(0) {
 }
 
-// Конструктор с вариантами ответов
-Question::Question(const std::vector<std::string>& content)
-    : content_(content)
-    , correct_(false)
-    , is_resolved_(false)
-    , points_(0) {
-}
 
 // Геттеры и сеттеры
-std::vector<std::string> Question::getContent() const {
+std::string Question::getContent() const {
     return content_;
 }
 
@@ -57,11 +52,11 @@ void Question::setContent(const std::vector<std::string>& content) {
 }
 
 bool Question::isCorrect() const {
-    return correct_;
+    return is_correct_;
 }
 
 void Question::setCorrect(bool correct) {
-    correct_ = correct;
+    is_correct_ = correct;
 }
 
 bool Question::isResolved() const {
@@ -89,7 +84,7 @@ int Question::countPoints() {
         return 0;
     }
 
-    if (correct_) {
+    if (is_correct_) {
         std::cout << "Ответ правильный! Начислено очков: " << points_ << std::endl;
         return points_;
     }
@@ -197,4 +192,30 @@ void Question::removeOption(int index) {
     else {
         std::cout << "Ошибка: Неверный индекс варианта ответа!" << std::endl;
     }
+}
+
+json Question::toJson() const {
+    json j;
+    j["content"] = content_;
+    j["options"] = options_;
+    j["correct_options"] = correct_options_;
+    j["points"] = points_;
+    j["explanation"] = explanation_;
+    return j;
+}
+
+void Question::fromJson(const json& j) {
+    content_ = j.at("content").get<std::string>();
+
+    if (j.contains("options")) {
+        options_ = j["options"].get<std::vector<std::string>>();
+    }
+
+    if (j.contains("correct_options")) {
+        correct_options_ = j["correct_options"].get<std::vector<int>>();
+    }
+
+
+    points_ = j.value("points", 0);
+    explanation_ = j.value("explanation", "");
 }
