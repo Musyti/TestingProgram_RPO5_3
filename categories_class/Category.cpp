@@ -4,19 +4,29 @@
 // Конструктор по умолчанию
 Category::Category()
     : name_("Без названия")
-    , points_(0)
     , questions_()
     , is_finished_(false)
-    , is_active_(false) {
+    , is_active_(false)
+    , test_description_("")
+    , results_(){
 }
 
 // Конструктор с параметром
 Category::Category(const std::string& name)
     : name_(name)
-    , points_(0)
     , questions_()
     , is_finished_(false)
-    , is_active_(false) {
+    , is_active_(false) 
+    , test_description_ ("")
+    , results_(){
+}
+
+Category::Category(const std::string& name, const std::string& test_description)
+    : name_(name)
+    , questions_()
+    , is_finished_(false)
+    , is_active_(false)
+    , test_description_(test_description) {
 }
 
 // Деструктор
@@ -33,14 +43,6 @@ void Category::setName(const std::string& name) {
     name_ = name;
 }
 
-int Category::getPoints() const {
-    return points_;
-}
-
-void Category::setPoints(int points) {
-    points_ = points;
-}
-
 bool Category::isFinished() const {
     return is_finished_;
 }
@@ -55,7 +57,6 @@ bool Category::isActive() const {
 void Category::showInfo() {
     std::cout << "=== Информация о категории ===" << std::endl;
     std::cout << "Название: " << name_ << std::endl;
-    std::cout << "Очки за вопрос: " << points_ << std::endl;
     std::cout << "Количество вопросов: " << questions_.size() << std::endl;
     std::cout << "Статус: " << (is_active_ ? "Активна" : "Не активна") << std::endl;
     std::cout << "Завершена: " << (is_finished_ ? "Да" : "Нет") << std::endl;
@@ -91,8 +92,6 @@ void Category::nextQuestion() {
         return;
     }
 
-    static int currentQuestionIndex = 0;
-
     if (currentQuestionIndex < static_cast<int>(questions_.size()) - 1) {
         currentQuestionIndex++;
         std::cout << "Переход к следующему вопросу" << std::endl;
@@ -110,8 +109,6 @@ void Category::previousQuestion() {
         std::cout << "Ошибка: Категория не активна!" << std::endl;
         return;
     }
-
-    static int currentQuestionIndex = 0;
 
     if (currentQuestionIndex > 0) {
         currentQuestionIndex--;
@@ -135,7 +132,11 @@ int Category::end() {
     is_finished_ = true;
 
     // Подсчет набранных очков (упрощенная логика)
-    int earnedPoints = points_ * questions_.size(); // Например, за все вопросы
+    int earnedPoints = 0; // Например, за все вопросы
+
+    for (int i = 0; i < questions_.size(); i++) {
+        earnedPoints += questions_.at(i).countPoints();
+    }
 
     std::cout << "Категория \"" << name_ << "\" завершена!" << std::endl;
     std::cout << "Набрано очков: " << earnedPoints << std::endl;
@@ -146,10 +147,12 @@ int Category::end() {
 /**
  * Добавляет новый вопрос в категорию
  */
-void Category::addQuestion() {
-    // Создание нового вопроса (упрощенно)
-    // В реальном приложении здесь будет создание объекта Question
-    // questions_.push_back(Question());
+void Category::addQuestion(const std::string& content,
+    const std::vector<std::string>& options,
+    const std::vector<int>& correct_options,
+    int points,
+    const std::string& explanation) {
+    questions_.push_back(Question(content, options, correct_options, points, explanation));
 
     std::cout << "Новый вопрос добавлен в категорию \"" << name_ << "\"" << std::endl;
 }
@@ -173,16 +176,18 @@ void Category::removeQuestion(int index) {
 json Category::toJson() const {
     json j;
     j["name"] = name_;
-    j["points"] = points_;
     j["is_finished"] = is_finished_;
     j["is_active"] = is_active_;
-
+    j["test_description"] = test_description_;
     // Сохранение вопросов
     j["questions"] = json::array();
-    for (const auto& question : questions_) {
+    j["results"] = json::array();
+    for (const Question& question : questions_) {
         j["questions"].push_back(question.toJson()); // Предполагается, что у Question есть toJson()
     }
-
+    for (const ResultRange& result : results_) {
+        j["results"].push_back(result.toJson()); // Предполагается, что у ResultRange есть toJson()
+    }
     return j;
 }
 
@@ -192,7 +197,6 @@ json Category::toJson() const {
 void Category::fromJson(const json& j) {
     try {
         name_ = j.at("name").get<std::string>();
-        points_ = j.at("points").get<int>();
         is_finished_ = j.value("is_finished", false);
         is_active_ = j.value("is_active", false);
 
@@ -203,6 +207,14 @@ void Category::fromJson(const json& j) {
                 Question q;
                 q.fromJson(question_json); // Предполагается, что у Question есть fromJson()
                 questions_.push_back(q);
+            }
+        }
+        results_.clear();
+        if (j.contains("results") && j["results"].is_array()) {
+            for (const auto& result_json : j["results"]) {
+                ResultRange re;
+                re.fromJson(result_json); // Предполагается, что у ResultRange есть fromJson()
+                results_.push_back(re);
             }
         }
     }
@@ -229,13 +241,13 @@ void Category::saveToFile(const std::string& filename) {
         file << j.dump(4); // Красивый вывод с отступами
 
         file.close();
-        std::cout << "✅ Категория \"" << name_ << "\" успешно сохранена в файл: "
+        std::cout << "Категория \"" << name_ << "\" успешно сохранена в файл: "
             << filename << std::endl;
         std::cout << "   - Вопросов сохранено: " << questions_.size() << std::endl;
 
     }
     catch (const std::exception& e) {
-        std::cerr << "❌ Ошибка при сохранении в файл " << filename << ": "
+        std::cerr << "Ошибка при сохранении в файл " << filename << ": "
             << e.what() << std::endl;
     }
 }
@@ -259,14 +271,13 @@ void Category::loadFromFile(const std::string& filename) {
         // Загрузка данных
         fromJson(j);
 
-        std::cout << "✅ Категория успешно загружена из файла: " << filename << std::endl;
+        std::cout << "Категория успешно загружена из файла: " << filename << std::endl;
         std::cout << "   - Название: " << name_ << std::endl;
-        std::cout << "   - Очки за вопрос: " << points_ << std::endl;
         std::cout << "   - Вопросов загружено: " << questions_.size() << std::endl;
 
     }
     catch (const std::exception& e) {
-        std::cerr << "❌ Ошибка при загрузке из файла " << filename << ": "
+        std::cerr << "Ошибка при загрузке из файла " << filename << ": "
             << e.what() << std::endl;
     }
 }

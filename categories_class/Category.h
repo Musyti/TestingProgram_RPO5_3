@@ -8,29 +8,66 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
 
+struct ResultRange {
+    int min_points;      // Минимальное количество баллов для этого результата
+    int max_points;      // Максимальное количество баллов для этого результата
+    std::string title;   // Заголовок результата (например, "Крош")
+    std::string description; // Описание результата
+    std::string image_path;  // Путь к изображению (опционально)
+
+    // Конструктор по умолчанию
+    ResultRange() : min_points(0), max_points(0), title(""), description(""), image_path("") {}
+
+    // Конструктор с параметрами
+    ResultRange(int min, int max, const std::string& t, const std::string& desc = "", const std::string& img = "")
+        : min_points(min), max_points(max), title(t), description(desc), image_path(img) {
+    }
+
+    // Проверка, попадает ли количество баллов в диапазон
+    bool contains(int points) const {
+        return points >= min_points && points <= max_points;
+    }
+    json toJson() const {
+        json j;
+        j["min_points"] = min_points;
+        j["max_points"] = max_points;
+        j["title"] = title;
+        j["description"] = description;
+        j["imape_path"] = image_path;
+        return j;
+    }
+    void fromJson(const json& j) {
+        min_points = j.value("min_points", 0);
+        max_points = j.value("max_points", 0);
+        title = j.at("title").get<std::string>();
+        description = j.at("description").get<std::string>();
+        image_path = j.at("image_path").get<std::string>();
+    }
+};
+
 /**
  * Класс Category представляет категорию вопросов в викторине
  */
 class Category {
 private:
     std::string name_;              // Название категории
-    int points_;                     // Количество очков за правильный ответ
     std::vector<Question> questions_; // Массив вопросов категории
     bool is_finished_;               // Флаг завершения категории
     bool is_active_;                 // Флаг активности категории
-
+    int currentQuestionIndex = 0;    //Флаг текущего вопроса
+    std::string test_description_; // Описание категории (теста)
+    std::vector<ResultRange> results_; // Список результатов
 public:
     // Конструкторы
     Category();
     explicit Category(const std::string& name);
+    explicit Category(const std::string& name, const std::string& test_description);
     ~Category();
 
     // Геттеры и сеттеры (опционально)
     std::string getName() const;
     void setName(const std::string& name);
 
-    int getPoints() const;
-    void setPoints(int points);
 
     bool isFinished() const;
     bool isActive() const;
@@ -64,7 +101,11 @@ public:
     /**
      * Добавляет новый вопрос в категорию
      */
-    void addQuestion();
+    void addQuestion(const std::string& content,
+        const std::vector<std::string>& options,
+        const std::vector<int>& correct_options,
+        int points,
+        const std::string& explanation);
 
     /**
      * Удаляет вопрос по индексу

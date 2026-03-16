@@ -4,18 +4,60 @@
 
 // Конструктор по умолчанию
 Question::Question()
-    : content_()
-    , is_correct_(false)
+    : content_("")
+    , options_()
+    , correct_options_()
     , is_resolved_(false)
-    , points_(0) {
+    , is_correct_(false)
+    , points_(0)
+    , explanation_(""){
 }
 
-// Конструктор с текстовым вопросом
+/**
+ * Конструктор с текстовым вопросом
+ * Создает простой вопрос с одним правильным ответом
+ * @param content текст вопроса
+ */
 Question::Question(const std::string& content)
-    : content_({ content })  // Создаем вектор с одним элементом
-    , is_correct_(false)
+    : content_(content)
+    , options_()  // пока нет вариантов
+    , correct_options_()  // пока нет правильных ответов
     , is_resolved_(false)
-    , points_(0) {
+    , is_correct_(false)
+    , points_(10)  // значение по умолчанию
+    , explanation_(""){
+}
+
+/**
+ * Конструктор с вариантами ответов
+ * Создает вопрос с вариантами ответов (по умолчанию MULTIPLE_CHOICE)
+ * @param options вектор вариантов ответов
+ */
+Question::Question(const std::vector<std::string>& options)
+    : content_(options.empty() ? "" : options[0])  // первый элемент - текст вопроса
+    , options_(options.size() > 1 ?
+        std::vector<std::string>(options.begin() + 1, options.end()) :
+        std::vector<std::string>())  // остальные - варианты
+    , correct_options_()
+    , is_resolved_(false)
+    , is_correct_(false)
+    , points_(10)
+    , explanation_(""){
+}
+
+Question::Question(const std::string& content,
+    const std::vector<std::string>& options,
+    const std::vector<int>& correct_options,
+    int points,
+    const std::string& explanation)
+    : content_(content)
+    , options_(options)
+    , correct_options_(correct_options)
+    , is_resolved_(false)
+    , is_correct_(false)
+    , points_(points >= 0 ? points : 0)
+    , explanation_(explanation)
+{
 }
 
 
@@ -28,26 +70,10 @@ std::string Question::getContentAsString() const {
     if (content_.empty()) {
         return "";
     }
-
-    // Если это простой вопрос (один элемент)
-    if (content_.size() == 1) {
-        return content_[0];
-    }
-
-    // Если это вопрос с вариантами, объединяем их
-    std::string result = content_[0] + "\nВарианты ответов:\n";
-    for (size_t i = 1; i < content_.size(); ++i) {
-        result += std::to_string(i) + ". " + content_[i] + "\n";
-    }
-    return result;
+        return content_;
 }
 
-void Question::setContent(const std::string& content) {
-    content_.clear();
-    content_.push_back(content);
-}
-
-void Question::setContent(const std::vector<std::string>& content) {
+void Question::setContent(const std::string &content) {
     content_ = content;
 }
 
@@ -85,11 +111,9 @@ int Question::countPoints() {
     }
 
     if (is_correct_) {
-        std::cout << "Ответ правильный! Начислено очков: " << points_ << std::endl;
         return points_;
     }
     else {
-        std::cout << "Ответ неправильный. Очки не начислены." << std::endl;
         return 0;
     }
 }
@@ -97,79 +121,52 @@ int Question::countPoints() {
 /**
  * Редактирует вопрос
  */
-void Question::edit() {
-    std::cout << "=== Редактирование вопроса ===" << std::endl;
+bool Question::edit(const std::string& newContent,
+    const std::vector<std::string>& newOptions,
+    const std::vector<int>& newCorrectOptions,
+    int newPoints,
+    const std::string& newExplanation) {
+    bool changed = false;
 
-    if (content_.empty()) {
-        std::cout << "Вопрос пуст. Добавьте текст вопроса." << std::endl;
-        std::string newContent;
-        std::getline(std::cin, newContent);
-        content_.push_back(newContent);
-    }
-    else {
-        std::cout << "Текущий вопрос: " << getContentAsString() << std::endl;
-        std::cout << "Введите новый текст вопроса (или оставьте пустым для сохранения текущего):" << std::endl;
-
-        if (isMultipleChoice()) {
-            std::cout << "Это вопрос с вариантами ответов." << std::endl;
-            std::cout << "Количество вариантов: " << content_.size() - 1 << std::endl;
-
-            // Редактирование основного вопроса
-            std::string newQuestion;
-            std::cout << "Текст вопроса [" << content_[0] << "]: ";
-            std::getline(std::cin, newQuestion);
-            if (!newQuestion.empty()) {
-                content_[0] = newQuestion;
-            }
-
-            // Редактирование вариантов
-            for (size_t i = 1; i < content_.size(); ++i) {
-                std::string newOption;
-                std::cout << "Вариант " << i << " [" << content_[i] << "]: ";
-                std::getline(std::cin, newOption);
-                if (!newOption.empty()) {
-                    content_[i] = newOption;
-                }
-            }
-        }
-        else {
-            // Простой текстовый вопрос
-            std::string newContent;
-            std::cout << "Текст вопроса [" << content_[0] << "]: ";
-            std::getline(std::cin, newContent);
-            if (!newContent.empty()) {
-                content_[0] = newContent;
-            }
-        }
+    // Изменение текста вопроса
+    if (!newContent.empty() && newContent != content_) {
+        content_ = newContent;
+        changed = true;
     }
 
-    std::cout << "Введите количество очков за вопрос [" << points_ << "]: ";
-    std::string pointsInput;
-    std::getline(std::cin, pointsInput);
-    if (!pointsInput.empty()) {
-        try {
-            points_ = std::stoi(pointsInput);
-        }
-        catch (...) {
-            std::cout << "Ошибка ввода очков. Оставлено прежнее значение." << std::endl;
-        }
+    // Изменение вариантов ответов
+    if (!newOptions.empty() && newOptions != options_) {
+        options_ = newOptions;
+        changed = true;
     }
 
-    std::cout << "Вопрос успешно отредактирован!" << std::endl;
+    // Изменение правильных ответов
+    if (!newCorrectOptions.empty() && newCorrectOptions != correct_options_) {
+        correct_options_ = newCorrectOptions;
+        changed = true;
+    }
+
+    // Изменение очков
+    if (newPoints >= 0 && newPoints != points_) {
+        points_ = newPoints;
+        changed = true;
+    }
+
+    // Изменение объяснения
+    if (!newExplanation.empty() && newExplanation != explanation_) {
+        explanation_ = newExplanation;
+        changed = true;
+    }
+
+    return changed;
 }
 
-/**
- * Проверяет, является ли вопрос вопросом с множественным выбором
- */
-bool Question::isMultipleChoice() const {
-    return content_.size() > 1;
-}
 
 /**
  * Добавляет вариант ответа
  */
 void Question::addOption(const std::string& option) {
-    content_.push_back(option);
+    options_.push_back(option);
     std::cout << "Вариант ответа добавлен. Всего вариантов: " << content_.size() - 1 << std::endl;
 }
 
@@ -185,8 +182,8 @@ void Question::removeOption(int index) {
     // Индекс в векторе смещен на 1, так как content_[0] - это текст вопроса
     int vectorIndex = index + 1;
 
-    if (vectorIndex > 0 && vectorIndex < static_cast<int>(content_.size())) {
-        content_.erase(content_.begin() + vectorIndex);
+    if (vectorIndex > 0 && vectorIndex < static_cast<int>(options_.size())) {
+        options_.erase(options_.begin() + vectorIndex);
         std::cout << "Вариант ответа " << index << " удален." << std::endl;
     }
     else {

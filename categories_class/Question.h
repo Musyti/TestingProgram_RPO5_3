@@ -27,7 +27,12 @@ public:
     // Конструкторы
     Question();
     explicit Question(const std::string& content);
-
+    explicit Question(const std::vector<std::string>& options);
+    explicit Question(const std::string& content,
+        const std::vector<std::string>& options,
+        const std::vector<int>& correct_options,
+        int points,
+        const std::string& explanation);
     // Геттеры и сеттеры
     std::string getContent() const;
     std::string getContentAsString() const;  // Получить как единую строку
@@ -51,16 +56,15 @@ public:
     /**
      * Редактирует вопрос
      */
-    void edit();
+    bool edit(const std::string& newContent,
+        const std::vector<std::string>& newOptions,
+        const std::vector<int>& newCorrectOptions,
+        int newPoints,
+        const std::string& newExplanation);
+
 
     /**
-     * Проверяет, является ли вопрос вопросом с множественным выбором
-     * @return true если есть варианты ответов (больше одного элемента в content_)
-     */
-    bool isMultipleChoice() const;
-
-    /**
-     * Добавляет вариант ответа (для множественного выбора)
+     * Добавляет вариант ответа 
      * @param option вариант ответа
      */
     void addOption(const std::string& option);
