@@ -19,9 +19,8 @@ Question::Question()
 Question::Question(const std::string& content)
     : content_(content)
     , options_()  // пока нет вариантов
-    , correct_options_()  // пока нет правильных ответов
-    , is_resolved_(false)
-    , is_correct_(false){  // значение по умолчанию
+    , points_options_() // пока нет очков за ответы
+    , is_resolved_(false) {
 }
 
 /**
@@ -33,13 +32,11 @@ Question::Question(const std::string& content)
 
 Question::Question(const std::string& content,
     const std::vector<std::string>& options,
-    const std::vector<int>& correct_options)
+    const std::vector<int>& points_options)
     : content_(content)
     , options_(options)
-    , correct_options_(correct_options)
+    , points_options_(points_options)
     , is_resolved_(false)
-    , is_correct_(false)
-    , points_(points >= 0 ? points : 0)
 {
 }
 
@@ -60,14 +57,6 @@ void Question::setContent(const std::string &content) {
     content_ = content;
 }
 
-bool Question::isCorrect() const {
-    return is_correct_;
-}
-
-void Question::setCorrect(bool correct) {
-    is_correct_ = correct;
-}
-
 bool Question::isResolved() const {
     return is_resolved_;
 }
@@ -81,7 +70,7 @@ int Question::getPoints() const {
 }
 
 void Question::setPoints(int points) {
-    points_ = points;
+    points_ += points;
 }
 
 /**
@@ -92,13 +81,7 @@ int Question::countPoints() {
         std::cout << "¬опрос еще не решен!" << std::endl;
         return 0;
     }
-
-    if (is_correct_) {
         return points_;
-    }
-    else {
-        return 0;
-    }
 }
 
 /**
@@ -106,9 +89,8 @@ int Question::countPoints() {
  */
 bool Question::edit(const std::string& newContent,
     const std::vector<std::string>& newOptions,
-    const std::vector<int>& newCorrectOptions,
-    int newPoints,
-    const std::string& newExplanation) {
+    const std::vector<int>& newPointsOptions,
+    int newPoints) {
     bool changed = false;
 
     // »зменение текста вопроса
@@ -124,14 +106,8 @@ bool Question::edit(const std::string& newContent,
     }
 
     // »зменение правильных ответов
-    if (!newCorrectOptions.empty() && newCorrectOptions != correct_options_) {
-        correct_options_ = newCorrectOptions;
-        changed = true;
-    }
-
-    // »зменение очков
-    if (newPoints >= 0 && newPoints != points_) {
-        points_ = newPoints;
+    if (!newPointsOptions.empty() && newPointsOptions != points_options_) {
+        points_options_ = newPointsOptions;
         changed = true;
     }
 
@@ -178,10 +154,9 @@ json Question::toJson() const {
     json j;
     j["content"] = content_;
     j["options"] = options_;
-    j["correct_options"] = correct_options_;
     j["points_options"] = points_options_;
     j["points"] = points_;
-    return j
+    return j;
 }
 
 void Question::fromJson(const json& j) {
@@ -191,11 +166,9 @@ void Question::fromJson(const json& j) {
         options_ = j["options"].get<std::vector<std::string>>();
     }
 
-    if (j.contains("correct_options")) {
-        correct_options_ = j["correct_options"].get<std::vector<int>>();
+    if (j.contains("points_options")) {
+        points_options_ = j["points_options"].get<std::vector<int>>();
     }
 
-
     points_ = j.value("points", 0);
-    explanation_ = j.value("explanation", "");
 }
