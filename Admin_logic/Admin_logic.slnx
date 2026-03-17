@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Admin_logic.vcxproj" Id="30b396bd-97d6-4d34-ace7-a4109f9eaa20" />
+</Solution>
