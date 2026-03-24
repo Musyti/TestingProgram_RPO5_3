@@ -6,9 +6,8 @@
 Question::Question()
     : content_("")
     , options_()
-    , correct_options_()
-    , is_resolved_(false)
-    , is_correct_(false){
+    ,points_options_()
+    , is_resolved_(false){
 }
 
 /**
@@ -108,12 +107,6 @@ bool Question::edit(const std::string& newContent,
     // »зменение правильных ответов
     if (!newPointsOptions.empty() && newPointsOptions != points_options_) {
         points_options_ = newPointsOptions;
-        changed = true;
-    }
-
-    // »зменение объ€снени€
-    if (!newExplanation.empty() && newExplanation != explanation_) {
-        explanation_ = newExplanation;
         changed = true;
     }
 

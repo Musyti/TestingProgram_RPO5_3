@@ -157,10 +157,10 @@ int Category::end() {
  */
 void Category::addQuestion(const std::string& content,
     const std::vector<std::string>& options,
-    const std::vector<int>& correct_options,
+    const std::vector<int>& points_options,
     int points,
     const std::string& explanation) {
-    questions_.push_back(Question(content, options, correct_options, points, explanation));
+    questions_.push_back(Question(content, options, points_options));
 
     std::cout << "Новый вопрос добавлен в категорию \"" << name_ << "\"" << std::endl;
 }
