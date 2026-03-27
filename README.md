@@ -1,7 +1,5 @@
 # Тестирующая программа
 
-![Демонстрация работы]([https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGVqZ2pqbzk5NWY4OGNueXJzNmczcTFwYTZqNGJzM2hhbWZxOXllMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ujNEk6XERhBU2ugrgr/giphy.gif](https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGVqZ2pqbzk5NWY4OGNueXJzNmczcTFwYTZqNGJzM2hhbWZxOXllMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ujNEk6XERhBU2ugrgr/giphy.gif))
-
 Простое приложение для создания и прохождения тестов с весовыми коэффициентами ответов. Подходит для викторин, психологических тестов и опросов с накопительной системой баллов.
 
 ## 📥 Скачать
