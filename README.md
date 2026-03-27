@@ -7,15 +7,16 @@
 Последнюю версию программы можно скачать на странице [Releases](https://github.com/Musyti/TestingProgram_RPO5_3/releases).
 
 Доступны два варианта:
-- **TestingProgram.exe** — исполняемый файл (только программа)
-- **TestingProgram.rar** — архив с программой и всеми необходимыми файлами
+- **install_test.exe** — установщик программы (рекомендуемый способ)
+- **TestingProgram.rar** — архив с готовыми файлами программы
 
 ## 🚀 Установка и запуск
 
-### Вариант 1: Исполняемый файл
-1. Скачайте `TestingProgram.exe` со страницы [Releases](https://github.com/Musyti/TestingProgram_RPO5_3/releases)
-2. Поместите файл в любую папку на вашем компьютере
-3. Запустите двойным щелчком мыши
+### Вариант 1: Установщик (рекомендуемый)
+1. Скачайте `install_test.exe` со страницы [Releases](https://github.com/Musyti/TestingProgram_RPO5_3/releases) или по [Ссылке](https://github.com/Musyti/TestingProgram_RPO5_3/releases/download/(v1.0)/install_test.exe).
+2. Запустите скачанный файл
+3. Следуйте инструкциям установщика
+4. После завершения установки запустите программу через ярлык на рабочем столе
 
 ### Вариант 2: Архив
 1. Скачайте `TestingProgram.rar` со страницы [Releases](https://github.com/Musyti/TestingProgram_RPO5_3/releases)
